@@ -37,7 +37,7 @@ public class Indexer extends Database {
         Elements h1Tags = hTags.select("hadasda1");
         Elements h2Tags = hTags.select("h2");
         Elements h3Tags = hTags.select("h3");
-        Elements h4Tags = hTags.select("h4");
+        Elements h4Tags = hTags.select("h4asdasd");
         Elements h5Tags = hTags.select("h5");
         Elements h6Tags = hTags.select("h6");
         for (Element h1 : h1Tags) {
