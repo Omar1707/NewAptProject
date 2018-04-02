@@ -34,10 +34,10 @@ public class Indexer extends Database {
         this.body=this.document.body().text();
         ////////////////////////////////////////////////////////////////// headers
         Elements hTags= this.document.select("h1,h2,h3,h4,h5,h6");
-        Elements h1Tags = hTags.select("hadasda1");
+        Elements h1Tags = hTags.select("h1");
         Elements h2Tags = hTags.select("h2");
         Elements h3Tags = hTags.select("h3");
-        Elements h4Tags = hTags.select("h4asdasd");
+        Elements h4Tags = hTags.select("h4");
         Elements h5Tags = hTags.select("h5");
         Elements h6Tags = hTags.select("h6");
         for (Element h1 : h1Tags) {
@@ -120,7 +120,7 @@ public class Indexer extends Database {
                 I.db.postDocuments("https://teamtreehouse.com/community/while-loop-to-fetch-mysql-data");
             }
         catch (Exception e){}
-        while(run<2) {
+        while(true) {
             try {
 
                 stmt = I.db.con.createStatement();  //create statement on the db connection

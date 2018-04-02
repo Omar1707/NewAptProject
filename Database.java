@@ -117,30 +117,30 @@ public class Database {
     }
     public void UpdateInvertedFile(final String token,final  String type,int doc,int pos)
     {  //ResultSet rs;
-    try{
-        PreparedStatement ps = this.con.prepareStatement("Select * FROM invertedfile WHERE Wid=(SELECT id FROM tokens t WHERE (t.word= ? AND t.type= ?) AND document=? AND position= ? )");
-        ps.setString(1, token);
-        ps.setString(2, type);
-        ps.setInt   (3, doc);
-        ps.setInt   (4, pos);
-        ResultSet rs = ps.executeQuery();
+        try{
+            PreparedStatement ps = this.con.prepareStatement("Select * FROM invertedfile WHERE Wid=(SELECT id FROM tokens t WHERE (t.word= ? AND t.type= ?) AND document=? AND position= ? )");
+            ps.setString(1, token);
+            ps.setString(2, type);
+            ps.setInt   (3, doc);
+            ps.setInt   (4, pos);
+            ResultSet rs = ps.executeQuery();
 
-        if (rs.next()) {
-            String query = "UPDATE invertedfile SET flag = ? WHERE Wid=(SELECT id FROM tokens t WHERE (t.word= ? AND t.type= ?) AND document=? AND position= ? )";
-            PreparedStatement preparedStmt = this.con.prepareStatement(query);
-            preparedStmt.setInt   (1, 1);
-            preparedStmt.setString(2, token);
-            preparedStmt.setString(3, type);
-            preparedStmt.setInt   (4, doc);
-            preparedStmt.setInt   (5, pos);
-            // execute the java preparedstatement
-            preparedStmt.executeUpdate();
-            // Quest already completed
-        } else {
-            this.postWords(token,type);
-            this.postInvertedfile(token,type,doc,pos,1);
-            // Quest not completed yet
-        }
+            if (rs.next()) {
+                String query = "UPDATE invertedfile SET flag = ? WHERE Wid=(SELECT id FROM tokens t WHERE (t.word= ? AND t.type= ?) AND document=? AND position= ? )";
+                PreparedStatement preparedStmt = this.con.prepareStatement(query);
+                preparedStmt.setInt   (1, 1);
+                preparedStmt.setString(2, token);
+                preparedStmt.setString(3, type);
+                preparedStmt.setInt   (4, doc);
+                preparedStmt.setInt   (5, pos);
+                // execute the java preparedstatement
+                preparedStmt.executeUpdate();
+                // Quest already completed
+            } else {
+                this.postWords(token,type);
+                this.postInvertedfile(token,type,doc,pos,1);
+                // Quest not completed yet
+            }
 
 
 
@@ -151,10 +151,10 @@ public class Database {
     public void SetFlagDefault()
     {
         try{
-        String query = "UPDATE invertedfile SET flag = ?";
-        PreparedStatement preparedStmt = this.con.prepareStatement(query);
-        preparedStmt.setInt   (1, 0);
-        preparedStmt.executeUpdate();
+            String query = "UPDATE invertedfile SET flag = ?";
+            PreparedStatement preparedStmt = this.con.prepareStatement(query);
+            preparedStmt.setInt   (1, 0);
+            preparedStmt.executeUpdate();
         }
         catch(Exception e){}
 
@@ -169,4 +169,77 @@ public class Database {
         catch(Exception e){}
 
     }
+    public String getURL(int uid) throws Exception {
+        try {
+            String query = "SELECT URL FROM aptproject.documentfile WHERE Uid=" + uid +";";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            while (rs.next())
+            {
+                return rs.getString("URL");
+            }
+        }
+        catch (Exception e)
+        {}
+        return null;
+    }
+
+    public void getURLs(String urls[]) throws Exception {
+        try {
+            String query = "SELECT URL FROM aptproject.documentfile;";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            int i = 0;
+            while (rs.next())
+            {
+                urls[i] = rs.getString("URL");
+                i++;
+            }
+        }
+        catch (Exception e)
+        {}
+    }
+
+    public int getURLCount() throws Exception
+    {
+        try {
+            String query = "SELECT COUNT(*) FROM aptproject.documentfile";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+
+            while (rs.next())
+            {
+                return rs.getInt("COUNT(*)");
+            }
+        } catch(Exception e){}
+        return 0;
+    }
+
+    public String checkURL(String url) throws Exception
+    {
+        try {
+            String query = "SELECT URL FROM aptproject.documentfile WHERE (URL = " + url + ")";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+
+            while (rs.next())
+            {
+                return rs.getString("URL");
+            }
+        } catch(Exception e){}
+        return null;
+    }
+
 }
