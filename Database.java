@@ -43,9 +43,10 @@ public class Database {
             ///////////Inverted index database
 
             {
-                PreparedStatement create = this.con.prepareStatement("CREATE TABLE IF NOT EXISTS DocumentFile (" +
+                PreparedStatement create = this.con.prepareStatement("CREATE TABLE IF NOT EXISTS documentfile (" +
                         "Uid int NOT NULL AUTO_INCREMENT," +
                         "URL varchar(255) UNIQUE," +
+                        "FileName int" +
                         "PRIMARY KEY(Uid))");
                 create.executeUpdate();
             }
@@ -85,12 +86,12 @@ public class Database {
         }
 
     }
-    public void postDocuments(final String token) throws Exception {
+    public void postDocuments(final String token, final int fileName) throws Exception {
         //final String var1="john";
         try {
 
             {
-                PreparedStatement posted = this.con.prepareStatement("INSERT INTO DocumentFile(URL) VALUES('" + token + "')");
+                PreparedStatement posted = this.con.prepareStatement("INSERT INTO documentfile(URL,FileName) VALUES('" + token + "'),('" + fileName + "'))");
                 posted.executeUpdate();
             }
 
