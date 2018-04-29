@@ -2,6 +2,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -35,7 +38,7 @@ public class Crawler {
     public void crawl()
     {
         try {
-            String query = "SELECT URL FROM aptproject.documentfile;";
+            String query = "SELECT URL,FileName FROM aptproject.documentfile;";
             Statement stmt;
             ResultSet rs;
 
@@ -47,6 +50,7 @@ public class Crawler {
 
             while (rs.next()) {
                 String url = rs.getString("URL");
+                int fileName = rs.getInt("FileName");
 
                 Boolean check = true; //true: not visited, false: visited
                 for (int i = 0; i < visitedNext; i++)
@@ -56,8 +60,10 @@ public class Crawler {
 
                 if (check) {
                     Document doc = Jsoup.connect(url).get();
-
-
+                    String docString = doc.outerHtml();
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(Integer.toString(fileName)));
+                    writer.write(docString);
+                    writer.close();
                     org.jsoup.select.Elements links = doc.select("a[href]");
                     for (Element link : links) {
                         String newURL = Normalize(link.attr("abs:href"));
@@ -66,7 +72,8 @@ public class Crawler {
                         //boolean robotCheck = rh.robotCheck(newURL);
                         if (exists==null) {
                             System.out.println(newURL);
-                            db.postDocuments(newURL);
+                            db.postDocuments(newURL,fileName);
+                            fileName++;
                             visited[visitedNext] = newURL;
                             visitedNext++;
                         }
