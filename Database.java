@@ -46,7 +46,7 @@ public class Database {
                 PreparedStatement create = this.con.prepareStatement("CREATE TABLE IF NOT EXISTS documentfile (" +
                         "Uid int NOT NULL AUTO_INCREMENT," +
                         "URL varchar(255) UNIQUE," +
-                        "FileName int" +
+                        "FileName int," +
                         "PRIMARY KEY(Uid))");
                 create.executeUpdate();
             }
@@ -91,7 +91,7 @@ public class Database {
         try {
 
             {
-                PreparedStatement posted = this.con.prepareStatement("INSERT INTO documentfile(URL,FileName) VALUES('" + token + "'),('" + fileName + "'))");
+                PreparedStatement posted = this.con.prepareStatement("INSERT INTO documentfile(URL,FileName) VALUES('" + token + "','" + fileName + "')");
                 posted.executeUpdate();
             }
 
