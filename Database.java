@@ -56,7 +56,8 @@ public class Database {
                         "URL varchar(255) UNIQUE," +
                         "FileName int," +
                         "Rank int,"+
-                        "FOREIGN KEY(document_number) REFERENCES documentfile(Uid))");
+                        "FOREIGN KEY(document_number) REFERENCES documentfile(Uid)," +
+                        "UNIQUE KEY `tdf` (`document_number`,`URL`,`FileName`))");
                 create.executeUpdate();
             }
             {
