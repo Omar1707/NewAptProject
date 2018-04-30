@@ -51,6 +51,15 @@ public class Database {
                 create.executeUpdate();
             }
             {
+                PreparedStatement create = this.con.prepareStatement("CREATE TABLE IF NOT EXISTS targeted_documentfile (" +
+                        "document_number int NOT NULL ," +
+                        "URL varchar(255) UNIQUE," +
+                        "FileName int," +
+                        "Rank int,"+
+                        "FOREIGN KEY(document_number) REFERENCES documentfile(Uid))");
+                create.executeUpdate();
+            }
+            {
                 PreparedStatement create = this.con.prepareStatement("CREATE TABLE IF NOT EXISTS invertedfile (" +
                         "Wid int NOT NULL," +
                         "document int," +

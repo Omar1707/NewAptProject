@@ -114,12 +114,6 @@ public class Indexer extends Database {
 
         Statement stmt;
         ResultSet rs;
-        try {
-                I.db.postDocuments("https://ww1.gowatchseries.co/silicon-valley-season-5-episode-1");
-                I.db.postDocuments("https://yesmovies.to/movie/silicon-valley-season-5-24194/1303731-14/watching.html");
-                I.db.postDocuments("https://teamtreehouse.com/community/while-loop-to-fetch-mysql-data");
-            }
-        catch (Exception e){}
         while(true) {
             try {
 
