@@ -38,7 +38,7 @@ public class Crawler {
     public void crawl()
     {
         try {
-            String query = "SELECT URL,FileName FROM aptproject.documentfile;";
+            String query = "SELECT Uid,URL,FileName FROM aptproject.documentfile;";
             Statement stmt;
             ResultSet rs;
 
@@ -47,10 +47,12 @@ public class Crawler {
             String visited[] = new String[5000];
             for (int i=0;i<5000;i++) visited[i] = null;
             int visitedNext = 0;
+            int fileName = db.getMaxFileName();
+            fileName++;
 
             while (rs.next()) {
                 String url = rs.getString("URL");
-                int fileName = rs.getInt("FileName");
+                int uid = rs.getInt("Uid");
 
                 Boolean check = true; //true: not visited, false: visited
                 for (int i = 0; i < visitedNext; i++)
@@ -61,17 +63,25 @@ public class Crawler {
                 if (check) {
                     Document doc = Jsoup.connect(url).get();
                     String docString = doc.outerHtml();
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(Integer.toString(fileName)));
-                    writer.write(docString);
-                    writer.close();
+                    if (uid == 1) {
+                        BufferedWriter writer = new BufferedWriter(new FileWriter("Files\\1.txt"));
+                        writer.write(docString);
+                        writer.close();
+                    }
                     org.jsoup.select.Elements links = doc.select("a[href]");
                     for (Element link : links) {
                         String newURL = Normalize(link.attr("abs:href"));
 
                         String exists = db.checkURL(newURL);
+                        boolean canConnect = !(newURL.contains("-") || newURL.contains("~"));
                         //boolean robotCheck = rh.robotCheck(newURL);
-                        if (exists==null) {
+                        if (exists==null && canConnect) {
                             System.out.println(newURL);
+                            String urlDoc = Jsoup.connect(newURL).get().outerHtml();
+                            String file = "Files\\" + Integer.toString(fileName) + ".txt";
+                            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                            writer.write(urlDoc);
+                            writer.close();
                             db.postDocuments(newURL,fileName);
                             fileName++;
                             visited[visitedNext] = newURL;

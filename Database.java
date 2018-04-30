@@ -110,6 +110,24 @@ public class Database {
 
     }
 
+    public int getMaxFileName() throws Exception {
+        try {
+            String query = "SELECT max(FileName) FROM aptproject.documentfile";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            while (rs.next())
+            {
+                return rs.getInt("max(FileName)");
+            }
+        }
+        catch (Exception e)
+        {}
+        return 0;
+    }
+
     public void postInvertedfile(final String token,final String type,int Did,int pos,int flag )  {
         //final String var1="john";
         try {
@@ -237,7 +255,7 @@ public class Database {
     public String checkURL(String url) throws Exception
     {
         try {
-            String query = "SELECT URL FROM aptproject.documentfile WHERE (URL = " + url + ")";
+            String query = "SELECT URL FROM aptproject.documentfile WHERE URL = '" + url + "'";
             Statement stmt;
             ResultSet rs;
 
