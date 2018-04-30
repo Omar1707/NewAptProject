@@ -110,6 +110,38 @@ public class Database {
         }
 
     }
+    public void posttargeted_Documents(final int id ,final String link, final int fileName ,final int Rank) throws Exception {
+        //final String var1="john";
+        try {
+
+            {
+                PreparedStatement posted = this.con.prepareStatement("INSERT INTO targeted_documentfile (document_number,URL,FileName,Rank) VALUES(('" + id + "'),('" + link + "'),('" + fileName + "'),('" + Rank + "'))");
+                posted.executeUpdate();
+            }
+
+        } catch (Exception e) {
+             //System.out.println(e);
+        }
+
+    }
+
+    public int getMaxFileName() throws Exception {
+        try {
+            String query = "SELECT max(FileName) FROM aptproject.documentfile";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            while (rs.next())
+            {
+                return rs.getInt("max(FileName)");
+            }
+        }
+        catch (Exception e)
+        {}
+        return 0;
+    }
 
     public void postInvertedfile(final String token,final String type,int Did,int pos,int flag )  {
         //final String var1="john";
