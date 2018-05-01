@@ -19,7 +19,7 @@ public class PhraseSearching {
         if (matcher.find())
         {
             System.out.println(matcher.group(1));
-            s= s.replaceAll("\"(.*?)\"","");
+            s= matcher.group(1);
             q.ProcessPhrase(s);
             //System.out.println(mydata);
         }
@@ -29,7 +29,7 @@ public class PhraseSearching {
 
     public static void main(String[] args) throws Exception
     {
-        String s=" Welcome \"The land of the dead\"";
+        String s=" land";
         PhraseSearching p=new PhraseSearching();
         p.ProcessPhrase(s);
     }
