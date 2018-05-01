@@ -1,6 +1,8 @@
 import javafx.scene.control.Tab;
 
 import java.sql.*;
+import java.util.Vector;
+
 public class Database {
     protected Connection con;
 
@@ -121,7 +123,7 @@ public class Database {
             }
 
         } catch (Exception e) {
-             //System.out.println(e);
+            //System.out.println(e);
         }
 
     }
@@ -286,4 +288,91 @@ public class Database {
         return null;
     }
 
+    public int getWordID(String word, int[] id, String[] type)
+    {
+        try {
+            String query = "SELECT id,type FROM aptproject.tokens WHERE word = '" + word + "'";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            int i = 0;
+
+            while (rs.next())
+            {
+                id[i] = rs.getInt("id");
+                type[i] = rs.getString("type");
+                i++;
+            }
+            return i;
+        } catch(Exception e){}
+        return 0;
+    }
+
+    public void getDocumentsContainingWord(int WID, Vector<Integer> documents)
+    {
+        try {
+            String query = "SELECT  document FROM aptproject.invertedfile WHERE Wid = " + WID;
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+
+            while (rs.next())
+            {
+                int docID = rs.getInt("document");
+                if (!documents.contains(docID)) documents.add(docID);
+            }
+        } catch (Exception e){}
+    }
+
+    public int getCountPerDoc(int document, int WID)
+    {
+        try {
+            String query = "SELECT count(*) FROM aptproject.invertedfile WHERE document = " + document + " AND Wid = " + WID;
+            Statement stmt;
+            ResultSet rs;
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            while (rs.next()) return rs.getInt("count(*)");
+        } catch (Exception e){}
+        return 0;
+    }
+    public void updateTarget(Vector<Integer> documents, Vector<Integer> rank)
+    {
+        try {
+            String query = "SELECT document_number FROM aptproject.targeted_documentfile";
+            Statement stmt;
+            ResultSet rs;
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+            while (rs.next())
+            {
+                int docNo = rs.getInt("document_number");
+                String query2 = "UPDATE aptproject.targeted_documentfile set Rank = ? WHERE document_number = ?";
+                PreparedStatement stmt2 = con.prepareStatement(query2);
+                if (documents.contains(docNo))
+                {
+                    int i = documents.indexOf(docNo);
+                    stmt2.setInt(1, rank.elementAt(i));
+                    stmt2.setInt(2, docNo);
+                }
+                else
+                {
+                    stmt2.setInt(1, 0);
+                    stmt2.setInt(2, docNo);
+                }
+                stmt2.executeUpdate();
+            }
+
+            String orderQuery = "SELECT * FROM aptproject.targeted_documentfile ORDER BY Rank desc";
+            Statement stmt3 = con.createStatement();
+            ResultSet resultSet = stmt3.executeQuery(orderQuery);
+
+
+        } catch (Exception e){}
+    }
 }
+
