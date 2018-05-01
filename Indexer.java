@@ -4,6 +4,8 @@ import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import javax.sound.midi.SysexMessage;
 import java.io.*;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -27,14 +29,14 @@ public class Indexer extends Database {
         this.db=db;
     }
 
-    public void SetNewdocument(String url)throws IOException
+    public void SetNewdocument(Document doc)throws IOException
     {
-        this.url=url;
-        this.document = Jsoup.connect(this.url).get();//for testing
-        this.title=this.document.title().toString().toLowerCase();
-        this.body=this.document.body().text();
+        //this.url=url;
+        //this.document = Jsoup.connect(this.url).get();//for testing
+        this.title=doc.title().toString().toLowerCase();
+        this.body=doc.body().text();
         ////////////////////////////////////////////////////////////////// headers
-        Elements hTags= this.document.select("h1,h2,h3,h4,h5,h6");
+        Elements hTags= doc.select("h1,h2,h3,h4,h5,h6");
         Elements h1Tags = hTags.select("h1");
         Elements h2Tags = hTags.select("h2");
         Elements h3Tags = hTags.select("h3");
@@ -79,18 +81,18 @@ public class Indexer extends Database {
     {
         ////////////////////////////////////////////////////////////////
         this.body = this.body.toLowerCase(); //all capital to small
-        this.body = this.body.replaceAll("[^a-zA-Z0-9]", " "); //all special char to spaces
-        this.body = this.body.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
+        this.body = this.body.replaceAll("[^a-zA-Z0-9]|(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " "); //all special char to spaces
+        //this.body = this.body.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
         this.body = this.body.replaceAll("\\s{2,}", " ");//any 2 or more whitespaces to 1 whitespace
         this.tokensbody = this.body.split("\\s");//split string at each white space
         ////////////////////////////////////////////////////////////////
-        this.title = this.title.replaceAll("[^a-zA-Z0-9]", " "); //all special char to spaces
-        this.title = this.title.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
+        this.title = this.title.replaceAll("[^a-zA-Z0-9]|[^a-zA-Z0-9]|(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " "); //all special char to spaces
+        //this.title = this.title.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
         this.title = this.title.replaceAll("\\s{2,}", " ");//any 2 or more whitespaces to 1 whitespace
         this.tokenstitle = this.title.split("\\s");//split string at each white space
         ////////////////////////////////////////////////////////////////
-        this.header = this.header.replaceAll("[^a-zA-Z0-9]", " "); //all special char to spaces
-        this.header = this.header.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
+        this.header = this.header.replaceAll("[^a-zA-Z0-9]|(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " "); //all special char to spaces
+        //.header = this.header.replaceAll("(\\ban\\b)|(\\ba\\b)|(\\band\\b)|(\\bin\\b)", " ");
         this.header = this.header.replaceAll("\\s{2,}", " ");//any 2 or more whitespaces to 1 whitespace
         this.tokensheader = this.header.split("\\s");//split string at each white space
     }
@@ -110,10 +112,10 @@ public class Indexer extends Database {
         catch (Exception e){}
 
         String query =
-                "select Uid, URL " +
+                "select Uid, URL, FileName, Indexed " +
                         "from " + "DocumentFile" ;
-        Statement stmt;
-        ResultSet rs;
+        Statement stmt,stmt1;
+        ResultSet rs,rs1;
         while(true) {
             try {
 
@@ -122,57 +124,73 @@ public class Indexer extends Database {
                 while (rs.next()) {
                     String url = rs.getString("URL");   //save current url link to string
                     int UID = rs.getInt("Uid");       //save current document number
-                    I.SetNewdocument(url);
-                    I.Splitter();
-                    ////////////////////////////////////////////////////////////////
-                    for (int i = 0; i < I.tokensheader.length; i++) {
+                    int filename = rs.getInt("FileName");
+                    int indexed = rs.getInt("Indexed");
+                    System.out.println(Integer.toString(filename));
+                    if (UID != 1) {
                         try {
-                            String stem=new PorterStemmer().stem(I.tokensheader[i]);
-                            I.db.postWords(stem, "Header"); //add current word to db
-                            if ( run == 0 )
-                                I.db.postInvertedfile(stem, "Header", UID, i,0); //add current word with document & position in db
-                            else if(run>0){
-                                I.db.UpdateInvertedFile(stem,"Header",UID,i);
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
-                    ////////////////////////////////////////////////////////////////
-                    for (int i = 0; i < I.tokenstitle.length; i++) {
-                        try {
-                            String stem=new PorterStemmer().stem(I.tokenstitle[i]);
+                            File input = new File("Files/" + Integer.toString(filename) + ".txt");
 
-                            I.db.postWords(stem, "Title"); //add current word to db
-                            if ( run == 0 )
-                            I.db.postInvertedfile(stem, "Title", UID, i,0); //add current word with document & position in db
-                            else if(run>0){
-                                I.db.UpdateInvertedFile(stem,"Title",UID,i);
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
-                    ////////////////////////////////////////////////////////////////
-                    for (int i = 0; i < I.tokensbody.length; i++) {
-                        try {
-                            String stem=new PorterStemmer().stem(I.tokensbody[i]);
-                            I.db.postWords(stem, "Body"); //add current word to db
-                            if ( run == 0 )
-                            I.db.postInvertedfile(stem, "Body", UID, i,0); //add current word with document & position in db
-                            else if(run>0) {
-                                I.db.UpdateInvertedFile(stem, "Body", UID, i);
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
+                            Document doc = Jsoup.parse(input, "UTF-8", url);
 
+
+                            I.SetNewdocument(doc);
+                            I.Splitter();
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                        ////////////////////////////////////////////////////////////////
+
+                            for (int i = 0; i < I.tokensheader.length; i++) {
+                                try {
+                                    String stem = new PorterStemmer().stem(I.tokensheader[i]);
+                                    I.db.postWords(stem, "Header"); //add current word to db
+                                    if (run == 0)
+                                        I.db.postInvertedfile(stem, "Header", UID, i, 0); //add current word with document & position in db
+                                    else if (run > 0) {
+                                        I.db.UpdateInvertedFile(stem, "Header", UID, i);
+                                    }
+                                } catch (Exception e) {
+                                }
+                                I.header = "";
+                            }
+                            ////////////////////////////////////////////////////////////////
+                            for (int i = 0; i < I.tokenstitle.length; i++) {
+                                try {
+                                    String stem = new PorterStemmer().stem(I.tokenstitle[i]);
+
+                                    I.db.postWords(stem, "Title"); //add current word to db
+                                    if (run == 0)
+                                        I.db.postInvertedfile(stem, "Title", UID, i, 0); //add current word with document & position in db
+                                    else if (run > 0) {
+                                        I.db.UpdateInvertedFile(stem, "Title", UID, i);
+                                    }
+                                } catch (Exception e) {
+                                }
+                            }
+                            ////////////////////////////////////////////////////////////////
+                            for (int i = 0; i < I.tokensbody.length; i++) {
+                                try {
+                                    String stem = new PorterStemmer().stem(I.tokensbody[i]);
+                                    I.db.postWords(stem, "Body"); //add current word to db
+                                    if (run == 0)
+                                        I.db.postInvertedfile(stem, "Body", UID, i, 0); //add current word with document & position in db
+                                    else if (run > 0) {
+                                        I.db.UpdateInvertedFile(stem, "Body", UID, i);
+                                    }
+                                } catch (Exception e) {
+                                }
+                            }
+                           // stmt1=I.db.con.createStatement();
+                          //rs1=stmt1.executeQuery("Update documentfile SET Indexed = 1  WHERE UID='"+UID+"'");
+
+                    }
                 }
-
             } catch (Exception e) {
             }
            if(run>8) I.db.Delete0Flag();
             System.out.println("Insertion complete");
             I.db.SetFlagDefault();
-
             run++;
         }
 

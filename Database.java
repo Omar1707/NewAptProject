@@ -47,6 +47,7 @@ public class Database {
                         "Uid int NOT NULL AUTO_INCREMENT," +
                         "URL varchar(255) UNIQUE," +
                         "FileName int," +
+                        "Indexed int DEFAULT 0," +
                         "PRIMARY KEY(Uid))");
                 create.executeUpdate();
             }
