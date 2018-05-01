@@ -1,3 +1,4 @@
+import opennlp.tools.stemmer.PorterStemmer;
 import org.jsoup.Jsoup;
 import org.jsoup.helper.Validate;
 import org.jsoup.nodes.Document;
@@ -111,15 +112,8 @@ public class Indexer extends Database {
         String query =
                 "select Uid, URL " +
                         "from " + "DocumentFile" ;
-
         Statement stmt;
         ResultSet rs;
-        try {
-                I.db.postDocuments("https://ww1.gowatchseries.co/silicon-valley-season-5-episode-1");
-                I.db.postDocuments("https://yesmovies.to/movie/silicon-valley-season-5-24194/1303731-14/watching.html");
-                I.db.postDocuments("https://teamtreehouse.com/community/while-loop-to-fetch-mysql-data");
-            }
-        catch (Exception e){}
         while(true) {
             try {
 
@@ -133,11 +127,12 @@ public class Indexer extends Database {
                     ////////////////////////////////////////////////////////////////
                     for (int i = 0; i < I.tokensheader.length; i++) {
                         try {
-                            I.db.postWords(I.tokensheader[i], "Header"); //add current word to db
+                            String stem=new PorterStemmer().stem(I.tokensheader[i]);
+                            I.db.postWords(stem, "Header"); //add current word to db
                             if ( run == 0 )
-                                I.db.postInvertedfile(I.tokensheader[i], "Header", UID, i,0); //add current word with document & position in db
+                                I.db.postInvertedfile(stem, "Header", UID, i,0); //add current word with document & position in db
                             else if(run>0){
-                                I.db.UpdateInvertedFile(I.tokensheader[i],"Header",UID,i);
+                                I.db.UpdateInvertedFile(stem,"Header",UID,i);
                             }
                         } catch (Exception e) {
                         }
@@ -145,11 +140,13 @@ public class Indexer extends Database {
                     ////////////////////////////////////////////////////////////////
                     for (int i = 0; i < I.tokenstitle.length; i++) {
                         try {
-                            I.db.postWords(I.tokenstitle[i], "Title"); //add current word to db
+                            String stem=new PorterStemmer().stem(I.tokenstitle[i]);
+
+                            I.db.postWords(stem, "Title"); //add current word to db
                             if ( run == 0 )
-                            I.db.postInvertedfile(I.tokenstitle[i], "Title", UID, i,0); //add current word with document & position in db
+                            I.db.postInvertedfile(stem, "Title", UID, i,0); //add current word with document & position in db
                             else if(run>0){
-                                I.db.UpdateInvertedFile(I.tokenstitle[i],"Title",UID,i);
+                                I.db.UpdateInvertedFile(stem,"Title",UID,i);
                             }
                         } catch (Exception e) {
                         }
@@ -157,11 +154,12 @@ public class Indexer extends Database {
                     ////////////////////////////////////////////////////////////////
                     for (int i = 0; i < I.tokensbody.length; i++) {
                         try {
-                            I.db.postWords(I.tokensbody[i], "Body"); //add current word to db
+                            String stem=new PorterStemmer().stem(I.tokensbody[i]);
+                            I.db.postWords(stem, "Body"); //add current word to db
                             if ( run == 0 )
-                            I.db.postInvertedfile(I.tokensbody[i], "Body", UID, i,0); //add current word with document & position in db
+                            I.db.postInvertedfile(stem, "Body", UID, i,0); //add current word with document & position in db
                             else if(run>0) {
-                                I.db.UpdateInvertedFile(I.tokensbody[i], "Body", UID, i);
+                                I.db.UpdateInvertedFile(stem, "Body", UID, i);
                             }
                         } catch (Exception e) {
                         }
