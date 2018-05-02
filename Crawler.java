@@ -11,18 +11,19 @@ import java.sql.Statement;
 public class Crawler {
     private Database db;
     private RobotHandler rh;
+    private double d;
 
     public Crawler(Database db, RobotHandler rh)
     {
         this.db = db;
         this.rh = rh;
+        d = 0.85;
     }
 
     public String Normalize(String url)
     {
         url = url.replaceAll("HTTPS|HTTP|https", "http");
         url = url.replaceAll("www\\.","");
-        url = url.replaceAll("%([A-Z0-9])*","~");
         url = url.replaceAll(":([0-9]+)","");
         url = url.replaceAll("/$","$");
         url = url.replaceAll("/\\.\\./","/");
@@ -38,7 +39,7 @@ public class Crawler {
     public void crawl()
     {
         try {
-            String query = "SELECT Uid,URL,FileName FROM aptproject.documentfile;";
+            String query = "SELECT Uid,URL,FileName,Popularity FROM aptproject.documentfile;";
             Statement stmt;
             ResultSet rs;
 
@@ -53,6 +54,7 @@ public class Crawler {
             while (rs.next()) {
                 String url = rs.getString("URL");
                 int uid = rs.getInt("Uid");
+                double MyPop = rs.getDouble("Popularity");
 
                 Boolean check = true; //true: not visited, false: visited
                 for (int i = 0; i < visitedNext; i++)
@@ -69,11 +71,12 @@ public class Crawler {
                         writer.close();
                     }
                     org.jsoup.select.Elements links = doc.select("a[href]");
+                    int noOfLinks = links.size();
                     for (Element link : links) {
                         String newURL = Normalize(link.attr("abs:href"));
 
                         String exists = db.checkURL(newURL);
-                        boolean canConnect = !(newURL.contains("-") || newURL.contains("~"));
+                        boolean canConnect = !(newURL.contains("-"));
                         //boolean robotCheck = rh.robotCheck(newURL);
                         if (exists==null && canConnect) {
                             System.out.println(newURL);
@@ -82,10 +85,16 @@ public class Crawler {
                             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                             writer.write(urlDoc);
                             writer.close();
-                            db.postDocuments(newURL,fileName);
+                            double pop = (1-d) + (d*(MyPop/noOfLinks));
+                            db.postDocuments(newURL,fileName,0.15);
                             fileName++;
                             visited[visitedNext] = newURL;
                             visitedNext++;
+                        }
+                        else if (exists!=null){
+                            double currentPop = db.getPopularity(newURL);
+                            double newPop = currentPop + d*(MyPop/noOfLinks);
+                            db.updatePopularity(newPop,newURL);
                         }
                     }
                 }

@@ -49,6 +49,7 @@ public class Database {
                         "Uid int NOT NULL AUTO_INCREMENT," +
                         "URL varchar(255) UNIQUE," +
                         "FileName int," +
+                        "Popularity double," +
                         "Indexed int DEFAULT 0," +
                         "PRIMARY KEY(Uid))");
                 create.executeUpdate();
@@ -99,12 +100,12 @@ public class Database {
         }
 
     }
-    public void postDocuments(final String token, final int fileName) throws Exception {
+    public void postDocuments(final String token, final int fileName, final double pop) throws Exception {
         //final String var1="john";
         try {
 
             {
-                PreparedStatement posted = this.con.prepareStatement("INSERT INTO documentfile(URL,FileName) VALUES('" + token + "','" + fileName + "')");
+                PreparedStatement posted = this.con.prepareStatement("INSERT INTO documentfile(URL,FileName,Popularity) VALUES('" + token + "','" + fileName + "','" + pop + "')");
                 posted.executeUpdate();
             }
 
@@ -113,6 +114,7 @@ public class Database {
         }
 
     }
+
     public void posttargeted_Documents(final int id ,final String link, final int fileName ,final int Rank) throws Exception {
         //final String var1="john";
         try {
@@ -273,7 +275,7 @@ public class Database {
     public String checkURL(String url) throws Exception
     {
         try {
-            String query = "SELECT URL FROM aptproject.documentfile WHERE (URL = " + url + ")";
+            String query = "SELECT URL FROM aptproject.documentfile WHERE URL = '" + url + "'";
             Statement stmt;
             ResultSet rs;
 
@@ -286,6 +288,35 @@ public class Database {
             }
         } catch(Exception e){}
         return null;
+    }
+
+    public double getPopularity(String url) throws Exception
+    {
+        try {
+            String query = "SELECT Popularity FROM aptproject.documentfile WHERE (URL = " + url + ")";
+            Statement stmt;
+            ResultSet rs;
+
+            stmt = con.createStatement();
+            rs = stmt.executeQuery(query);
+
+            while (rs.next())
+            {
+                return rs.getDouble("Popularity");
+            }
+        } catch(Exception e){}
+        return 0;
+    }
+
+    public void updatePopularity(double newPop, String url)
+    {
+        try {
+            String query = "UPDATE aptproject.documentfile SET Popularity = ? WHERE URL = ?";
+            PreparedStatement stmt = con.prepareStatement(query);
+            stmt.setDouble(1,newPop);
+            stmt.setString(2,url);
+            stmt.executeUpdate();
+        } catch (Exception e){}
     }
 
     public int getWordID(String word, int[] id, String[] type)
